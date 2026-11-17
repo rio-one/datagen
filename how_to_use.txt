@@ -1,0 +1,88 @@
+可以直接使用，数据保留在 datagen 目录即可，不需要复制两份。我核对过两个项目的读取方式：ObjectSDF++ 需要建立数据软链接，DP-Recon 可以直接指定数据根目录。
+
+你的 scan6 是 384×384、8 个物体＋背景，共 9 类。下面的命令都在服务器执行，GPU 编号请替换为空闲卡。
+
+1. 接入 ObjectSDF++
+
+建立软链接，后续导出的 custom/scan7 等场景也会一起可见：
+ln -s /home/seed/wangruiyao/datagen/datasets/custom \
+  /home/seed/wangruiyao/objectsdf_plus/data/custom
+复制一份配置，并在末尾追加当前场景的配置。原配置保留：
+cp -n /home/seed/wangruiyao/objectsdf_plus/code/confs/replica_objsdfplus.conf \
+  /home/seed/wangruiyao/objectsdf_plus/code/confs/custom_scan6_objsdfplus.conf
+
+cat >> /home/seed/wangruiyao/objectsdf_plus/code/confs/custom_scan6_objsdfplus.conf <<'EOF'
+
+train.expname = objectsdfplus_custom
+dataset.data_dir = custom
+dataset.img_res = [384, 384]
+dataset.center_crop_type = no_crop
+dataset.use_mask = true
+dataset.num_views = -1
+model.implicit_network.d_out = 9
+EOF
+这里 num_views = -1 表示使用导出的全部训练图像。不要填 10，这份代码的该参数只支持 -1、3、6、9。
+
+启动训练：
+conda activate objsdf
+cd /home/seed/wangruiyao/objectsdf_plus/code
+
+CUDA_VISIBLE_DEVICES=2 torchrun \
+  --standalone --nproc_per_node=1 \
+  /home/seed/wangruiyao/objectsdf_plus/code/training/exp_runner.py \
+  --conf /home/seed/wangruiyao/objectsdf_plus/code/confs/custom_scan6_objsdfplus.conf \
+  --scan_id 6
+输出位于：
+/home/seed/wangruiyao/objectsdf_plus/exps/objectsdfplus_custom_6/<时间戳>/
+2. 接入 DP-Recon
+
+DP-Recon 支持绝对数据根目录，不需要再建软链接。新建配置：
+cp -n /home/seed/wangruiyao/DP-Recon/code/confs/replica_grid.conf \
+  /home/seed/wangruiyao/DP-Recon/code/confs/custom_scan6_grid.conf
+
+cat >> /home/seed/wangruiyao/DP-Recon/code/confs/custom_scan6_grid.conf <<'EOF'
+
+train.expname = dprecon_grid_custom
+dataset.data_root_dir = /home/seed/wangruiyao/datagen/datasets
+dataset.data_dir = custom
+dataset.img_res = [384, 384]
+dataset.center_crop_type = no_crop
+dataset.use_mask = true
+dataset.num_views = -1
+model.implicit_network.d_out = 9
+EOF
+它会组合出：
+数据根目录/custom/scan6
+你导出的几何提示、纹理提示和辅助相机文件已经在里面，不需要手动重命名。
+
+先启动几何阶段：
+conda activate dprecon
+cd /home/seed/wangruiyao/DP-Recon/code
+
+CUDA_VISIBLE_DEVICES=1 torchrun \
+  --standalone --nproc_per_node=1 \
+  /home/seed/wangruiyao/DP-Recon/code/training/exp_runner.py \
+  --conf /home/seed/wangruiyao/DP-Recon/code/confs/custom_scan6_grid.conf \
+  --scan_id 6 \
+  --prior_yaml geometry.yaml \
+  --none_wandb
+输出位于：
+/home/seed/wangruiyao/DP-Recon/exps/dprecon_grid_custom_6/<时间戳>/
+几何阶段及背景补全完成后，再启动纹理阶段。把下面的“实际时间戳”替换为刚才几何阶段的目录名：
+GEOM_RUN=/home/seed/wangruiyao/DP-Recon/exps/dprecon_grid_custom_6/实际时间戳
+
+CUDA_VISIBLE_DEVICES=1 torchrun \
+  --standalone --nproc_per_node=1 \
+  /home/seed/wangruiyao/DP-Recon/code/training/exp_runner.py \
+  --conf /home/seed/wangruiyao/DP-Recon/code/confs/custom_scan6_grid.conf \
+  --scan_id 6 \
+  --prior_yaml texture.yaml \
+  --is_continue \
+  --ft_folder "$GEOM_RUN" \
+  --checkpoint latest \
+  --none_wandb
+--ft_folder 必须指向完整的几何实验目录，因为纹理阶段除了权重，还会读取几何阶段生成的网格和图像。
+
+还有两点与你后面的对比实验有关：
+- 两个模型都使用 no_crop：数据已经完成裁剪及内参调整，再按 Replica 的方式裁剪会导致不匹配。
+- 当前是 10 张训练图＋10 张留出测试图。默认训练可视化不等于留出集评估，这 10 张测试图需要后续单独评估，才能公平比较两个模型。

@@ -1,0 +1,29 @@
+{
+  "_instructions": "Replace examples using prepared/rgb images (384x384), x horizontal / y vertical. Same instance ID across all frames. These example prompts are NOT valid for your video.",
+  "background": {
+    "geometry_prompt": "An empty room with walls, floor and ceiling.",
+    "texture_prompt": "An indoor room with plain walls and a wooden floor."
+  },
+  "objects": [
+    {
+      "id": 1,
+      "name": "chair_1",
+      "geometry_prompt": "A wooden chair with a backrest and four legs.",
+      "texture_prompt": "A brown wooden chair.",
+      "floor_supported": true,
+      "prompts": [
+        {"frame": 0, "points": [[160, 220], [20, 20]], "labels": [1, 0]}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "vase_1",
+      "geometry_prompt": "A ceramic vase with a rounded body and narrow opening.",
+      "texture_prompt": "A white ceramic vase.",
+      "floor_supported": false,
+      "prompts": [
+        {"frame": 0, "box": [230, 100, 290, 190]}
+      ]
+    }
+  ]
+}

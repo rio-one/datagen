@@ -1,0 +1,73 @@
+# Local environments (the active Conda environment lives outside this repository)
+/envs/
+.venv/
+venv/
+__pypackages__/
+
+# Downloaded models, third-party checkouts, inputs and generated datasets
+/models/
+/repos/
+/videos/
+/datasets/
+/work/
+
+# Local caches, temporary files and execution logs
+/.cache/
+/logs/
+/tmp/
+/temp/
+*.log
+*.part
+*.tmp
+
+# Machine-specific Conda settings and generated deployment/verification records
+/config/condarc
+/config/installed-packages.txt
+/config/torch-runtime-requirements.txt
+/config/*migration*.json
+/config/*verification*.json
+/config/runtime-copy-provenance.json
+# Keep config/annotations.example.json and source revision records in version control.
+
+# Large model/video files accidentally placed outside the directories above
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.mp4
+*.mov
+*.MOV
+*.mkv
+*.avi
+*.webm
+*.m4v
+
+# Python bytecode, build output and test/tool caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+/build/
+/dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local credentials and environment overrides; retain shareable examples
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Editor and operating-system files
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,12 @@
+name: datagen
+channels:
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - cuda-nvcc=12.8
+  - cuda-cudart-dev=12.8
+  - cuda-version=12.8
+# Install PyTorch-family cu128 wheels and xformers with scripts/bootstrap.sh.
+# Dedicated named environment at /home/seed/miniconda3/envs/datagen; never install into base.

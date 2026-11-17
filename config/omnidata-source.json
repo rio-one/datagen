@@ -1,0 +1,14 @@
+{
+  "commit": "f69ff3aedf983cb34c490a0afd0d29fdd83f6a1c",
+  "transport": "raw.githubusercontent.com via local Windows HTTPS + scp; exact commit",
+  "files": [
+    "__init__.py",
+    "base_model.py",
+    "blocks.py",
+    "dpt_depth.py",
+    "midas_net.py",
+    "midas_net_custom.py",
+    "transforms.py",
+    "vit.py"
+  ]
+}
